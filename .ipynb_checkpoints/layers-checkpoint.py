@@ -1,5 +1,5 @@
 import numpy as np
-
+import copy
 class layer:
     def __init__(self):
         self.prev = None
@@ -25,7 +25,7 @@ class layer:
         self.get_shape()
 
 class dense(layer):
-    def __init__(self,units,activation='relu',input_shape=None,relu_suppress=0.01):
+    def __init__(self,units,activation='relu',input_shape=None,relu_suppress=0.1):
         super().__init__()
         self.units = units
         self.activation = activation
@@ -36,14 +36,14 @@ class dense(layer):
     def initialize(self):
         if self.input_shape is not None:
             self.W = np.random.standard_normal(self.input_shape)
-            self.b = np.random.randn(1,self.input_shape[0])
+            self.b = np.random.standard_normal([1,self.input_shape[0]])
         else:
             raise Exception("Shape not set")
     
     def process(self,inp):
         if self.isInputLayer:
             self.X = inp
-        self.A = self.activate(np.dot(inp,self.W.T) + self.b)
+        self.A = self.activate((np.dot(inp,self.W.T) + self.b))
         self.delta()
         return self.A
     
@@ -55,7 +55,7 @@ class dense(layer):
         elif self.activation == 'softmax':
             return np.nan_to_num(np.exp(z) / np.sum(np.exp(z),axis=1).reshape(-1,1))
         else:
-            z[z<0] = 0
+            z[z<0] = 0.0
             return np.nan_to_num(z*self.relu_suppress)
 
     def delta(self):
@@ -64,9 +64,10 @@ class dense(layer):
         elif self.activation == 'tanh':
             self.dZ = 1 - self.A**2
         else:
-            self.A[self.A > 0] = 1*self.relu_suppress
-            self.dZ = self.A
-    
+            a = copy.deepcopy(self.A)
+            a[a>0] = 1
+            self.dZ = a
+
     def loss_delta(self,*args):
         if(len(args)==2):
             if(self.isOutputLayer):
