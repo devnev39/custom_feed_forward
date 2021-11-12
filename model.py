@@ -1,5 +1,6 @@
 import numpy as np
 import math
+from sklearn.utils import shuffle
 def vectorize(y):
     out = np.zeros((len(y),10))
     for i,each in enumerate(y):
@@ -34,10 +35,11 @@ class model:
             #self.__lst[-1].y_excl = self.y_excl
              
     
-    def fit(self,X,y,epochs=10,lr=0.01,batch_size = 64):
+    def fit(self,X,y,epochs=10,lr=0.01,batch_size=64,val_data=None):
         self.lr = lr
         loss = []
-        for each in range(epochs):        
+        for each in range(epochs):   
+            shuffle(X,y,random_state=0)
             start = 0
             completed = len(X)
             batch_loss = []
@@ -56,7 +58,11 @@ class model:
                 if completed <= 0:
                     completed = 0
             loss.append(np.mean(batch_loss))   
-            print(f'Epoch : {each} , loss : {loss[-1]}')
+            if val_data != None:
+                sc = self.score(val_data[0],val_data[1])
+                print(f'Epoch : {each} , loss : {loss[-1]} , val_acc : {sc}')
+            else:
+                print(f'Epoch : {each} , loss : {loss[-1]}')
         return loss
     
     def forward_pass(self):

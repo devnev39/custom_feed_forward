@@ -25,7 +25,7 @@ class layer:
         self.get_shape()
 
 class dense(layer):
-    def __init__(self,units,activation='relu',input_shape=None,relu_suppress=0.1):
+    def __init__(self,units,activation='relu',input_shape=None,relu_suppress=0.01):
         super().__init__()
         self.units = units
         self.activation = activation
@@ -65,16 +65,16 @@ class dense(layer):
             self.dZ = 1 - self.A**2
         else:
             a = copy.deepcopy(self.A)
-            a[a>0] = 1
+            a[a>0] = self.relu_suppress
             self.dZ = a
 
     def loss_delta(self,*args):
         if(len(args)==2):
             if(self.isOutputLayer):
                 if(args[0]=='mse'):
-                    self.dL = -2*(args[1]-self.A)
+                    self.dL = -2*(args[1]-self.A)/len(args[1])
                 elif(args[0] == 'CCE'):
-                    self.dL = self.A - args[1]
+                    self.dL = (self.A - args[1])/len(args[1])
                     
                     
         elif(len(args)==3):
